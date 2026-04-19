@@ -1,0 +1,48 @@
+SELECT
+    d.UserID,
+
+    CONCAT(d.Name, ' ', d.Surname) AS FullName,
+    d.Email,
+    d.Gender,
+    d.Race,
+    d.Age,
+
+    CASE 
+        WHEN d.Age < 12 THEN 'Kids' 
+        WHEN d.Age BETWEEN 13 AND 19 THEN 'Teenagers'
+        WHEN d.Age BETWEEN 20 AND 30 THEN 'Young_Adults'
+        WHEN d.Age BETWEEN 31 AND 45 THEN 'Middle_Aged'
+        WHEN d.Age BETWEEN 46 AND 59 THEN 'Adults'
+        ELSE 'Seniors'
+    END AS AgeGroup,
+
+    d.Province,
+    d.`Social Media Handle`,
+
+    v.Channel2 AS Channel,
+
+    -- convert once
+    DATE(ts) AS Date,
+    DATE_FORMAT(ts, 'EEEE') AS DayOfWeek,
+    DATE_FORMAT(ts, 'MMMM') AS Month,
+    DATE_FORMAT(ts, 'HH:mm:ss') AS Time,
+
+    CASE 
+        WHEN HOUR(TO_TIMESTAMP(v.RecordDate2, 'yyyy/MM/dd HH:mm')) BETWEEN 6 AND 11 THEN 'Morning'
+        WHEN HOUR(TO_TIMESTAMP(v.RecordDate2, 'yyyy/MM/dd HH:mm')) BETWEEN 12 AND 17 THEN 'Afternoon'
+        WHEN HOUR(TO_TIMESTAMP(v.RecordDate2, 'yyyy/MM/dd HH:mm')) BETWEEN 18 AND 21 THEN 'Evening'
+        ELSE 'Night'
+    END AS DayTime,
+
+    DATE_FORMAT(CAST(v.`Duration 2` AS TIMESTAMP), 'HH:mm:ss') AS Duration
+
+FROM workspace.default.bright_tv_dataset d
+
+LEFT JOIN (
+    SELECT *,
+           TO_TIMESTAMP(RecordDate2, 'yyyy/MM/dd HH:mm') AS ts
+    FROM workspace.default.bright_tv_viewership
+) v
+ON d.UserID = v.UserID
+WHERE v.UserID IS NOT NULL;
+
